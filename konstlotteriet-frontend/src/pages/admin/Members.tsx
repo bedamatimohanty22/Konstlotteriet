@@ -8,6 +8,8 @@ export const Members: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -92,6 +94,20 @@ export const Members: React.FC = () => {
           />
         )}
 
+        {showUserModal && selectedMember && (
+          <UserAccountModal
+            member={selectedMember}
+            onSuccess={() => {
+              setShowUserModal(false);
+              setSelectedMember(null);
+            }}
+            onCancel={() => {
+              setShowUserModal(false);
+              setSelectedMember(null);
+            }}
+          />
+        )}
+
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
             {members.map((member) => (
@@ -126,6 +142,15 @@ export const Members: React.FC = () => {
                       >
                         {member.active ? 'Aktiv' : 'Inaktiv'}
                       </span>
+                      <button
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setShowUserModal(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-800 text-sm"
+                      >
+                        Skapa inloggning
+                      </button>
                       {member.active && (
                         <button
                           onClick={() => handleDelete(member.id!)}
@@ -166,6 +191,8 @@ const MemberForm: React.FC<MemberFormProps> = ({ onSuccess, onCancel }) => {
     membershipStartYear: new Date().getFullYear(),
     active: true,
   });
+  const [password, setPassword] = useState('');
+  const [createUserAccount, setCreateUserAccount] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,7 +200,24 @@ const MemberForm: React.FC<MemberFormProps> = ({ onSuccess, onCancel }) => {
     setSubmitting(true);
 
     try {
-      await api.createMember(formData);
+      // First create the member
+      const newMember = await api.createMember(formData);
+
+      // Then create user account if requested
+      if (createUserAccount && password) {
+        try {
+          await api.register({
+            email: formData.email,
+            password: password,
+            role: 'MEMBER',
+            memberId: newMember.id!
+          });
+        } catch (userErr) {
+          alert('Medlem skapad men kunde inte skapa inloggning: ' + userErr);
+          console.error(userErr);
+        }
+      }
+
       onSuccess();
     } catch (err) {
       alert('Kunde inte skapa medlem');
@@ -265,6 +309,42 @@ const MemberForm: React.FC<MemberFormProps> = ({ onSuccess, onCancel }) => {
               />
             </div>
           </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center mb-4">
+              <input
+                type="checkbox"
+                id="createUserAccount"
+                checked={createUserAccount}
+                onChange={(e) => setCreateUserAccount(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="createUserAccount" className="ml-2 block text-sm text-gray-900">
+                Skapa inloggningskonto för medlemmen
+              </label>
+            </div>
+
+            {createUserAccount && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Lösenord
+                </label>
+                <input
+                  type="password"
+                  required={createUserAccount}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minst 6 tecken"
+                  minLength={6}
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Medlemmen kommer kunna logga in med sin e-postadress och detta lösenord
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end space-x-3">
             <button
               type="button"
@@ -282,6 +362,106 @@ const MemberForm: React.FC<MemberFormProps> = ({ onSuccess, onCancel }) => {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+interface UserAccountModalProps {
+  member: Member;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+const UserAccountModal: React.FC<UserAccountModalProps> = ({ member, onSuccess, onCancel }) => {
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await api.register({
+        email: member.email,
+        password: password,
+        role: 'MEMBER',
+        memberId: member.id!
+      });
+      alert('Inloggningskonto skapat! Användaren kan nu logga in med sin e-postadress och lösenord.');
+      onSuccess();
+    } catch (err: any) {
+      const errorMessage = err.message || 'Kunde inte skapa inloggning';
+      alert(errorMessage);
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            Skapa inloggning för {member.firstName} {member.lastName}
+          </h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                E-postadress
+              </label>
+              <input
+                type="email"
+                disabled
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500 sm:text-sm"
+                value={member.email}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Medlemmen kommer logga in med denna e-postadress
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Lösenord
+              </label>
+              <input
+                type="password"
+                required
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minst 6 tecken"
+                minLength={6}
+                autoFocus
+              />
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                Ett inloggningskonto med rollen MEMBER kommer att skapas. Användaren kan sedan logga in på systemet.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Avbryt
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {submitting ? 'Skapar...' : 'Skapa inloggning'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

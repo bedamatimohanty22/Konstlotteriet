@@ -287,40 +287,67 @@ public class MemberResourceTest {
 }
 ```
 
-## Säkerhet (TODO)
+## Säkerhet ✅
 
-### Framtida Implementation
+### Nuvarande Implementation
 
-När säkerhet implementeras:
+Systemet har JWT-baserad autentisering med bcrypt-hashning av lösenord:
 
-1. **Authentication**: JWT-baserad autentisering
-2. **Authorization**: Rollbaserad access control
-   - `ADMIN` - Full åtkomst till `/api/admin/*`
+1. **Authentication**: JWT-baserad autentisering ✅
+   - Lösenord hashas med bcrypt
+   - JWT tokens genereras vid lyckad inloggning
+   - Tokens innehåller användarinfo (userId, email, role)
+
+2. **Authorization**: Rollbaserad access control ✅
+   - `ADMIN` - Full åtkomst till `/api/admin/*` och `/api/auth/register`
    - `MEMBER` - Begränsad åtkomst till `/api/member/*`
-3. **Security Context**: Automatisk userId från JWT
-   ```java
-   // Istället för @PathParam("memberId")
-   Long currentUserId = securityContext.getUserId();
-   ```
+   - Public endpoints: `/api/auth/login`
 
-### Nuvarande Situation
+3. **User Management**:
+   - Admin kan skapa användarkonton via `/api/auth/register`
+   - Användare kan byta lösenord via `/api/auth/change-password`
+   - Separata `users` och `members` tabeller (one-to-one relation)
 
-⚠️ **VARNING**: Systemet har INGEN autentisering än!
+### Användarkonto-skapande
 
-Alla endpoints är öppna. MemberId skickas som parameter, vilket inte är säkert.
+**Via API (Backend):**
+```bash
+POST /api/auth/register
+{
+  "email": "member@example.com",
+  "password": "password123",
+  "role": "MEMBER",
+  "memberId": 1
+}
+```
+
+**Via UI (Frontend):**
+- Admin kan skapa medlemmar med inloggningskonton direkt
+- Admin kan skapa inloggningskonton för befintliga medlemmar
+- Se `konstlotteriet-frontend/src/pages/admin/Members.tsx`
+
+### Framtida Förbättringar
+
+⚠️ **TODO**: Medlems-endpoints använder fortfarande memberId som parameter:
 
 ```java
-// TILLFÄLLIGT - Kommer att ändras
+// NUVARANDE - Osäkert (alla kan accessa alla medlemmars data)
 @GET
 @Path("/{memberId}")
 public Response getProfile(@PathParam("memberId") Long memberId) { }
 
-// FRAMTIDA - Med säkerhet
+// FRAMTIDA - Säkert (medlemmar kan bara accessa sin egen data)
 @GET
 public Response getProfile(@Context SecurityContext sec) {
     Long memberId = getUserIdFromToken(sec);
+    // Verify member owns this data
 }
 ```
+
+**Nästa steg:**
+1. Ta bort memberId från member-endpoints
+2. Hämta userId från JWT token automatiskt
+3. Validera att medlemmar bara kan accessa sin egen data
 
 ## Common Pitfalls & Tips
 
@@ -437,11 +464,11 @@ Ingen manuell databas-setup behövs för utveckling!
 
 ## Utbyggnad av Systemet
 
-### Prio 1: Säkerhet
-1. Implementera JWT-autentisering
-2. Lägg till roller (ADMIN, MEMBER)
-3. Säkra endpoints baserat på roller
-4. Ta bort memberId från URLs
+### Prio 1: Säkerhet ✅ → Förbättringar
+1. ~~Implementera JWT-autentisering~~ ✅ KLART
+2. ~~Lägg till roller (ADMIN, MEMBER)~~ ✅ KLART
+3. ~~Säkra endpoints baserat på roller~~ ✅ KLART
+4. Ta bort memberId från URLs (TODO)
 
 ### Prio 2: Email-funktionalitet
 1. Konfigurera SMTP i `application.properties`
@@ -486,9 +513,13 @@ Ingen manuell databas-setup behövs för utveckling!
 | | 28 filer: entities, repos, services, DTOs, REST | |
 | | Flyway migration V1 | |
 | | Konfiguration och dokumentation | |
+| 2025-10-16 | JWT-autentisering och användarhantering | Claude |
+| | User entity och AuthService implementerat | |
+| | Frontend stöd för att skapa användarkonton | |
+| | Rollbaserad access control (ADMIN/MEMBER) | |
 
 ---
 
-**Senast uppdaterad**: 2025-10-10
+**Senast uppdaterad**: 2025-10-16
 **Version**: 1.0.0-SNAPSHOT
 **Underhålls av**: Konstföreningen

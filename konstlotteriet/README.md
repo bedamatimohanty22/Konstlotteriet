@@ -82,6 +82,35 @@ Fullständig API-dokumentation finns på **Swagger UI**: http://localhost:8080/s
 
 ### Admin Endpoints
 
+#### Autentisering (`/api/auth`)
+- `POST /api/auth/login` - Logga in (öppet för alla)
+- `POST /api/auth/register` - Skapa användarkonto (endast admin)
+- `POST /api/auth/change-password` - Byt lösenord
+- `GET /api/auth/me` - Hämta inloggad användare
+
+**Exempel: Skapa användarkonto för medlem**
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <admin-token>" \
+  -d '{
+    "email": "anna@example.com",
+    "password": "securepassword123",
+    "role": "MEMBER",
+    "memberId": 1
+  }'
+```
+
+**Exempel: Logga in**
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "anna@example.com",
+    "password": "securepassword123"
+  }'
+```
+
 #### Medlemmar (`/api/admin/members`)
 - `GET /api/admin/members` - Hämta alla medlemmar
 - `GET /api/admin/members/active` - Hämta aktiva medlemmar
@@ -104,6 +133,9 @@ curl -X POST http://localhost:8080/api/admin/members \
     "active": true
   }'
 ```
+
+**Skapa inloggningskonto för medlem:**
+Efter att ha skapat en medlem, kan du ge dem inloggning genom att anropa `/api/auth/register` med medlemmens ID.
 
 #### Konstverk (`/api/admin/artworks`)
 - `GET /api/admin/artworks` - Hämta alla konstverk
@@ -160,6 +192,18 @@ curl -X POST http://localhost:8080/api/admin/artworks \
 
 ### Tabeller
 
+#### users
+Användarkonton med autentisering (JWT).
+
+**Fält:**
+- `id` - Primary key
+- `email` - E-postadress (unik, användarnamn)
+- `password` - Bcrypt-hashat lösenord
+- `role` - Roll (ADMIN eller MEMBER)
+- `member_id` - FK till members (för MEMBER-roll)
+- `active` - Om kontot är aktivt
+- `created_at`, `updated_at` - Tidsstämplar
+
 #### members
 Medlemsinformation med soft delete-stöd.
 
@@ -173,6 +217,10 @@ Medlemsinformation med soft delete-stöd.
 - `last_win_year` - Senaste år medlemmen vann
 - `active` - Om medlemmen är aktiv
 - `created_at`, `updated_at` - Tidsstämplar
+
+**Relation till users:**
+- En medlem kan ha ett användarkonto (one-to-one via `users.member_id`)
+- Ett användarkonto skapas separat efter att medlemmen har registrerats
 
 #### artworks
 Konstverk som ska lottas ut.
@@ -382,8 +430,8 @@ quarkus.swagger-ui.path=/swagger-ui
 ## Framtida Förbättringar
 
 ### Säkerhet
-- [ ] Implementera autentisering (JWT, OAuth2, etc.)
-- [ ] Rollbaserad access control (ADMIN, MEMBER)
+- [x] Implementera autentisering (JWT med bcrypt lösenordshashning)
+- [x] Rollbaserad access control (ADMIN, MEMBER)
 - [ ] API-nyckelhantering
 - [ ] HTTPS-konfiguration
 
