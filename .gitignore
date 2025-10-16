@@ -1,0 +1,107 @@
+# Konstlotteriet - Git Ignore File
+
+# ==================== Backend (Java/Quarkus) ====================
+
+# Maven
+konstlotteriet/target/
+konstlotteriet/.mvn/
+konstlotteriet/mvnw
+konstlotteriet/mvnw.cmd
+
+# Eclipse
+konstlotteriet/.project
+konstlotteriet/.classpath
+konstlotteriet/.settings/
+konstlotteriet/.factorypath
+
+# IntelliJ IDEA
+konstlotteriet/.idea/
+konstlotteriet/*.iml
+konstlotteriet/*.ipr
+konstlotteriet/*.iws
+konstlotteriet/out/
+
+# VS Code
+konstlotteriet/.vscode/
+
+# Quarkus
+konstlotteriet/.quarkus/
+
+# ==================== Frontend (React/Vite) ====================
+
+# Dependencies
+konstlotteriet-frontend/node_modules/
+konstlotteriet-frontend/package-lock.json
+konstlotteriet-frontend/yarn.lock
+konstlotteriet-frontend/pnpm-lock.yaml
+
+# Build output
+konstlotteriet-frontend/dist/
+konstlotteriet-frontend/build/
+
+# Vite
+konstlotteriet-frontend/.vite/
+
+# IDE
+konstlotteriet-frontend/.idea/
+konstlotteriet-frontend/.vscode/
+konstlotteriet-frontend/*.iml
+
+# Environment variables
+konstlotteriet-frontend/.env.local
+konstlotteriet-frontend/.env.development.local
+konstlotteriet-frontend/.env.test.local
+konstlotteriet-frontend/.env.production.local
+
+# ==================== General ====================
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.#*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and credentials
+.env
+*.env
+secrets/
+credentials.json
+.credentials
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# HashGen utility (temporary)
+HashGen.java
+HashGen.class
