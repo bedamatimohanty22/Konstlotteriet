@@ -131,7 +131,6 @@ export const Artworks: React.FC = () => {
 
         {showForm && (
           <ArtworkForm
-            lotteries={lotteries}
             onSuccess={() => {
               setShowForm(false);
               loadArtworks();
@@ -150,7 +149,7 @@ export const Artworks: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-gray-900">{artwork.title}</h3>
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                    {artwork.year}-{artwork.yearId}
+                    {artwork.lotteryYear}-{artwork.yearId}
                   </span>
                 </div>
 
@@ -159,14 +158,23 @@ export const Artworks: React.FC = () => {
                     <span className="font-medium">Konstnär:</span> {artwork.artist}
                   </p>
                   <p>
-                    <span className="font-medium">År:</span> {artwork.year}
+                    <span className="font-medium">Priskategori:</span> {artwork.priceCategory}
                   </p>
                   <p>
-                    <span className="font-medium">Uppskattat värde:</span>{' '}
-                    {artwork.estimatedValue.toLocaleString('sv-SE')} kr
+                    <span className="font-medium">Inköpsår:</span> {artwork.purchaseYear}
                   </p>
-                  {artwork.description && (
-                    <p className="text-gray-500 text-xs mt-2">{artwork.description}</p>
+                  <p>
+                    <span className="font-medium">Lotteriår:</span> {artwork.lotteryYear}
+                  </p>
+                  {artwork.technique && (
+                    <p>
+                      <span className="font-medium">Teknik:</span> {artwork.technique}
+                    </p>
+                  )}
+                  {artwork.size && (
+                    <p>
+                      <span className="font-medium">Storlek:</span> {artwork.size}
+                    </p>
                   )}
                 </div>
 
@@ -194,19 +202,19 @@ export const Artworks: React.FC = () => {
 };
 
 interface ArtworkFormProps {
-  lotteries: Lottery[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const ArtworkForm: React.FC<ArtworkFormProps> = ({ lotteries, onSuccess, onCancel }) => {
+const ArtworkForm: React.FC<ArtworkFormProps> = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState<Artwork>({
     title: '',
     artist: '',
-    year: new Date().getFullYear(),
-    estimatedValue: 0,
-    description: '',
-    lotteryId: undefined,
+    priceCategory: '',
+    technique: '',
+    size: '',
+    purchaseYear: new Date().getFullYear(),
+    lotteryYear: new Date().getFullYear(),
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -218,8 +226,9 @@ const ArtworkForm: React.FC<ArtworkFormProps> = ({ lotteries, onSuccess, onCance
       await api.createArtwork(formData);
       onSuccess();
     } catch (err) {
-      alert('Kunde inte skapa konstverk');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert('Kunde inte skapa konstverk: ' + errorMessage);
+      console.error('Full error:', err);
     } finally {
       setSubmitting(false);
     }
@@ -234,7 +243,7 @@ const ArtworkForm: React.FC<ArtworkFormProps> = ({ lotteries, onSuccess, onCance
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Titel</label>
+              <label className="block text-sm font-medium text-gray-700">Titel *</label>
               <input
                 type="text"
                 required
@@ -244,7 +253,7 @@ const ArtworkForm: React.FC<ArtworkFormProps> = ({ lotteries, onSuccess, onCance
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Konstnär</label>
+              <label className="block text-sm font-medium text-gray-700">Konstnär *</label>
               <input
                 type="text"
                 required
@@ -254,58 +263,58 @@ const ArtworkForm: React.FC<ArtworkFormProps> = ({ lotteries, onSuccess, onCance
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">År</label>
+              <label className="block text-sm font-medium text-gray-700">Priskategori *</label>
+              <input
+                type="text"
+                required
+                placeholder="t.ex. A, B, C"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                value={formData.priceCategory}
+                onChange={(e) => setFormData({ ...formData, priceCategory: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Teknik</label>
+              <input
+                type="text"
+                placeholder="t.ex. Olja på duk"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                value={formData.technique || ''}
+                onChange={(e) => setFormData({ ...formData, technique: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Storlek</label>
+              <input
+                type="text"
+                placeholder="t.ex. 50x70 cm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                value={formData.size || ''}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Inköpsår *</label>
               <input
                 type="number"
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                value={formData.year}
+                value={formData.purchaseYear}
                 onChange={(e) =>
-                  setFormData({ ...formData, year: parseInt(e.target.value) })
+                  setFormData({ ...formData, purchaseYear: parseInt(e.target.value) })
                 }
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Uppskattat värde (kr)
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Lotteriår *</label>
               <input
                 type="number"
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                value={formData.estimatedValue}
+                value={formData.lotteryYear}
                 onChange={(e) =>
-                  setFormData({ ...formData, estimatedValue: parseFloat(e.target.value) })
+                  setFormData({ ...formData, lotteryYear: parseInt(e.target.value) })
                 }
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Utlottning</label>
-              <select
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                value={formData.lotteryId || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    lotteryId: e.target.value ? Number(e.target.value) : undefined,
-                  })
-                }
-              >
-                <option value="">Välj utlottning (valfritt)</option>
-                {lotteries.map((lottery) => (
-                  <option key={lottery.id} value={lottery.id}>
-                    {lottery.year} - {lottery.status}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Beskrivning</label>
-              <textarea
-                rows={3}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
           </div>

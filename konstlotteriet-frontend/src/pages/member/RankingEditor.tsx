@@ -352,15 +352,11 @@ export const RankingEditor: React.FC = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{artwork.title}</h3>
                         <p className="text-sm text-gray-600 mb-1">{artwork.artist}</p>
-                        {artwork.description && (
-                          <p className="text-xs text-gray-500 line-clamp-2">
-                            {artwork.description}
-                          </p>
-                        )}
                         <div className="mt-2 flex items-center space-x-3 text-xs text-gray-500">
-                          <span>År: {artwork.year}</span>
-                          {artwork.estimatedValue && (
-                            <span>Värde: {artwork.estimatedValue} kr</span>
+                          <span>Priskategori: {artwork.priceCategory}</span>
+                          <span>Lotteriår: {artwork.lotteryYear}</span>
+                          {artwork.technique && (
+                            <span>Teknik: {artwork.technique}</span>
                           )}
                         </div>
                       </div>

@@ -46,14 +46,15 @@ export interface User {
 
 export interface Artwork {
   id?: number;
+  yearId?: number;
+  priceCategory: string;
   title: string;
   artist: string;
-  year: number;
-  yearId?: number;
-  lotteryId?: number;
-  estimatedValue: number;
-  description: string;
-  imageUrl?: string;
+  technique?: string;
+  size?: string;
+  purchaseYear: number;
+  lotteryYear: number;
+  isWon?: boolean;
 }
 
 export interface Lottery {

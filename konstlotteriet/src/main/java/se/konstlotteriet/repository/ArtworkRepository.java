@@ -22,10 +22,10 @@ public class ArtworkRepository implements PanacheRepository<Artwork> {
     }
 
     public Integer getNextYearId(Integer year) {
-        Long maxYearId = find("SELECT MAX(yearId) FROM Artwork WHERE lotteryYear = ?1", year)
-                .project(Long.class)
+        Integer maxYearId = find("SELECT MAX(yearId) FROM Artwork WHERE lotteryYear = ?1", year)
+                .project(Integer.class)
                 .firstResult();
-        return maxYearId != null ? maxYearId.intValue() + 1 : 1;
+        return maxYearId != null ? maxYearId + 1 : 1;
     }
 
     public List<Artwork> findByArtist(String artist) {
