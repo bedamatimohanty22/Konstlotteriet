@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rankingslista för Konstlotteriet {lottery.year}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4F46E5;
+            border-bottom: 3px solid #4F46E5;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #6366F1;
+            margin-top: 30px;
+        }
+        .intro {
+            background-color: #EEF2FF;
+            padding: 15px;
+            border-left: 4px solid #4F46E5;
+            margin: 20px 0;
+        }
+        .artwork {
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #F9FAFB;
+        }
+        .artwork-id {
+            background-color: #4F46E5;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .artwork-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1F2937;
+            margin: 8px 0;
+        }
+        .artwork-details {
+            color: #6B7280;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .artwork-category {
+            background-color: #FEF3C7;
+            color: #92400E;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .instructions {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #E5E7EB;
+            text-align: center;
+            color: #6B7280;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4F46E5;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Konstlotteriet {lottery.year}</h1>
+
+        <div class="intro">
+            <p><strong>Hej {member.firstName}!</strong></p>
+            <p>Det är snart dags för årets konstlotteri. Här nedan finner du alla konstverk som ska lottas ut i år.</p>
+            <p>Du har <strong>{numberOfTickets} lott{#if numberOfTickets > 1}er{/if}</strong> i årets utlottning.</p>
+        </div>
+
+        <div class="instructions">
+            <h3 style="margin-top: 0;">📋 Instruktioner för rankingslistan</h3>
+            <p>För att kunna rangordna konstverken, vänligen logga in på vår hemsida och skapa din rankingslista där.
+            Rangordna konstverken efter hur gärna du vill vinna dem (1 = högst prioritet).</p>
+            <a href="{loginUrl}" class="button">Logga in och rangordna</a>
+        </div>
+
+        <h2>Konstverk i årets utlottning</h2>
+        <p style="color: #6B7280; margin-bottom: 20px;">Totalt {artworks.size()} konstverk</p>
+
+        {#for artwork in artworks}
+        <div class="artwork">
+            <span class="artwork-id">{artwork.lotteryYear}-{artwork.yearId}</span>
+            <span class="artwork-category">{artwork.priceCategory}</span>
+
+            <div class="artwork-title">{artwork.title}</div>
+
+            <div class="artwork-details">
+                <strong>Konstnär:</strong> {artwork.artist}
+            </div>
+
+            {#if artwork.technique}
+            <div class="artwork-details">
+                <strong>Teknik:</strong> {artwork.technique}
+            </div>
+            {/if}
+
+            {#if artwork.size}
+            <div class="artwork-details">
+                <strong>Storlek:</strong> {artwork.size}
+            </div>
+            {/if}
+
+            <div class="artwork-details">
+                <strong>Inköpsår:</strong> {artwork.purchaseYear}
+            </div>
+        </div>
+        {/for}
+
+        <div class="footer">
+            <p><strong>Konstföreningen</strong></p>
+            <p>Detta mail skickades automatiskt från Konstlotteriet systemet.</p>
+            <p>Om du har frågor, kontakta admin@konstlotteriet.se</p>
+        </div>
+    </div>
+</body>
+</html>
