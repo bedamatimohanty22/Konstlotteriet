@@ -112,7 +112,7 @@ public class LotteryService {
     /**
      * Calculate number of tickets based on business rules
      */
-    private int calculateNumberOfTickets(Member member, int lotteryYear) {
+    public int calculateNumberOfTickets(Member member, int lotteryYear) {
         Integer lastWinYear = member.getLastWinYear();
 
         // If member won last year, they get 1 ticket

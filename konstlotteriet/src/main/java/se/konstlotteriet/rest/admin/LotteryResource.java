@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.Response;
 import se.konstlotteriet.domain.Lottery;
 import se.konstlotteriet.dto.LotteryDTO;
 import se.konstlotteriet.dto.LotteryParticipantDTO;
+import se.konstlotteriet.service.EmailService;
 import se.konstlotteriet.service.LotteryService;
 
 import java.util.List;
@@ -22,6 +23,9 @@ public class LotteryResource {
 
     @Inject
     LotteryService lotteryService;
+
+    @Inject
+    EmailService emailService;
 
     @GET
     public List<LotteryDTO> getAllLotteries() {
@@ -168,10 +172,86 @@ public class LotteryResource {
         }
     }
 
+    /**
+     * Send ranking list email to all active members
+     */
+    @POST
+    @Path("/{id}/send-ranking-lists")
+    public Response sendRankingLists(@PathParam("id") Long id,
+                                     @QueryParam("loginUrl") String loginUrl) {
+        try {
+            emailService.sendRankingListToAllMembers(id, loginUrl);
+            return Response.ok(new SuccessResponse("Rankinglistor skickade till alla medlemmar")).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+        }
+    }
+
+    /**
+     * Send ranking list email to a specific member
+     */
+    @POST
+    @Path("/{lotteryId}/send-ranking-list/{memberId}")
+    public Response sendRankingListToMember(@PathParam("lotteryId") Long lotteryId,
+                                           @PathParam("memberId") Long memberId,
+                                           @QueryParam("loginUrl") String loginUrl) {
+        try {
+            emailService.sendRankingListToMember(lotteryId, memberId, loginUrl);
+            return Response.ok(new SuccessResponse("Rankingslista skickad till medlem")).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+        }
+    }
+
+    /**
+     * Send lottery results email to all participants
+     */
+    @POST
+    @Path("/{id}/send-results")
+    public Response sendLotteryResults(@PathParam("id") Long id) {
+        try {
+            emailService.sendLotteryResultsToAllParticipants(id);
+            return Response.ok(new SuccessResponse("Lotteriresultat skickade till alla deltagare")).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+        }
+    }
+
+    /**
+     * Send lottery results email to a specific member
+     */
+    @POST
+    @Path("/{lotteryId}/send-result/{memberId}")
+    public Response sendLotteryResultToMember(@PathParam("lotteryId") Long lotteryId,
+                                             @PathParam("memberId") Long memberId) {
+        try {
+            emailService.sendLotteryResultsToMember(lotteryId, memberId);
+            return Response.ok(new SuccessResponse("Lotteriresultat skickat till medlem")).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ErrorResponse(e.getMessage()))
+                    .build();
+        }
+    }
+
     public static class ErrorResponse {
         public String message;
 
         public ErrorResponse(String message) {
+            this.message = message;
+        }
+    }
+
+    public static class SuccessResponse {
+        public String message;
+
+        public SuccessResponse(String message) {
             this.message = message;
         }
     }
