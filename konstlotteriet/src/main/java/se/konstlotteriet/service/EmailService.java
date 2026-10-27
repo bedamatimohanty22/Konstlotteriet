@@ -8,6 +8,9 @@ import se.konstlotteriet.domain.Artwork;
 import se.konstlotteriet.domain.Lottery;
 import se.konstlotteriet.domain.LotteryParticipant;
 import se.konstlotteriet.domain.Member;
+import se.konstlotteriet.repository.LotteryParticipantRepository;
+import se.konstlotteriet.repository.LotteryRepository;
+import se.konstlotteriet.repository.MemberRepository;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -17,6 +20,15 @@ public class EmailService {
 
     @Inject
     Mailer mailer;
+
+    @Inject
+    LotteryRepository lotteryRepository;
+
+    @Inject
+    MemberRepository memberRepository;
+
+    @Inject
+    LotteryParticipantRepository lotteryParticipantRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -79,6 +91,94 @@ public class EmailService {
         sendEmail(member.getEmail(), subject, body);
     }
 
+    public void sendRankingListToAllMembers(Long lotteryId, String loginUrl) {
+        Lottery lottery = lotteryRepository.findById(lotteryId);
+        if (lottery == null) {
+            throw new IllegalArgumentException("Lottning med ID " + lotteryId + " hittades inte");
+        }
+
+        for (Member member : memberRepository.findActiveMembers()) {
+            String subject = "Din rankinglista för Konstlotteriet " + lottery.getYear();
+            String body = buildRankingListReminder(member, lottery, loginUrl);
+            sendEmail(member.getEmail(), subject, body);
+        }
+    }
+
+    public void sendRankingListToMember(Long lotteryId, Long memberId, String loginUrl) {
+        Lottery lottery = lotteryRepository.findById(lotteryId);
+        Member member = memberRepository.findById(memberId);
+
+        if (lottery == null) {
+            throw new IllegalArgumentException("Lottning med ID " + lotteryId + " hittades inte");
+        }
+        if (member == null) {
+            throw new IllegalArgumentException("Medlem med ID " + memberId + " hittades inte");
+        }
+
+        String subject = "Din rankinglista för Konstlotteriet " + lottery.getYear();
+        String body = buildRankingListReminder(member, lottery, loginUrl);
+        sendEmail(member.getEmail(), subject, body);
+    }
+
+    public void sendLotteryResultsToAllParticipants(Long lotteryId) {
+        Lottery lottery = lotteryRepository.findById(lotteryId);
+        if (lottery == null) {
+            throw new IllegalArgumentException("Lottning med ID " + lotteryId + " hittades inte");
+        }
+
+        for (LotteryParticipant participant : lotteryParticipantRepository.findByLotteryId(lotteryId)) {
+            String subject = "Lotteriresultat för Konstlotteriet " + lottery.getYear();
+            String body = Boolean.TRUE.equals(participant.getHasWon())
+                ? buildWinnerEmail(participant.getMember(), participant.getWonArtwork(), lottery)
+                : buildNonWinnerEmail(participant.getMember(), lottery);
+            sendEmail(participant.getMember().getEmail(), subject, body);
+        }
+    }
+
+    public void sendLotteryResultsToMember(Long lotteryId, Long memberId) {
+        Lottery lottery = lotteryRepository.findById(lotteryId);
+        Member member = memberRepository.findById(memberId);
+        if (lottery == null) {
+            throw new IllegalArgumentException("Lottning med ID " + lotteryId + " hittades inte");
+        }
+        if (member == null) {
+            throw new IllegalArgumentException("Medlem med ID " + memberId + " hittades inte");
+        }
+
+        LotteryParticipant participant = lotteryParticipantRepository.findByLotteryAndMember(lottery, member)
+            .orElse(null);
+        if (participant == null) {
+            throw new IllegalArgumentException("Medlemmen deltar inte i denna utlottning");
+        }
+
+        String subject = "Lotteriresultat för Konstlotteriet " + lottery.getYear();
+        String body = Boolean.TRUE.equals(participant.getHasWon())
+            ? buildWinnerEmail(participant.getMember(), participant.getWonArtwork(), lottery)
+            : buildNonWinnerEmail(participant.getMember(), lottery);
+        sendEmail(participant.getMember().getEmail(), subject, body);
+    }
+
+    private String buildRankingListReminder(Member member, Lottery lottery, String loginUrl) {
+        return String.format("""
+            Hej %s,
+
+            Detta är en påminnelse om att du kan fylla i din rankinglista för årets utlottning %d.
+
+            Dragningsdatum: %s
+
+            Logga in här för att skapa eller uppdatera din rankinglista:
+            %s
+
+            Med vänliga hälsningar,
+            Konstlotteriet
+            """,
+            member.getFirstName(),
+            lottery.getYear(),
+            lottery.getLotteryDate() != null ? lottery.getLotteryDate().format(DATE_FORMATTER) : "Ej satt",
+            loginUrl != null && !loginUrl.isBlank() ? loginUrl : "[LÄNK TILL WEBBPLATS]"
+        );
+    }
+
     /**
      * Send email (actual sending)
      */
@@ -116,7 +216,7 @@ public class EmailService {
             """,
             member.getFirstName(),
             lottery.getYear(),
-            lottery.getLotteryDate() != null ? lottery.getLotteryDate().toString() : "Ej satt"
+            lottery.getLotteryDate() != null ? lottery.getLotteryDate().format(DATE_FORMATTER) : "Ej satt"
         );
     }
 
@@ -141,7 +241,7 @@ public class EmailService {
             """,
             member.getFirstName(),
             lottery.getYear(),
-            lottery.getLotteryDate() != null ? lottery.getLotteryDate().toString() : "Ej satt"
+            lottery.getLotteryDate() != null ? lottery.getLotteryDate().format(DATE_FORMATTER) : "Ej satt"
         );
     }
 
