@@ -7,7 +7,7 @@ Detta dokument innehåller viktig information för AI-assistenter (som Claude) s
 **Projektnamn**: Konstlotteriet
 **Typ**: Art Lottery Management System
 **Framework**: Quarkus 3.28.3
-**Språk**: Java 21
+**Språk**: Java 25
 **Databas**: PostgreSQL 15
 
 ## Affärsdomän

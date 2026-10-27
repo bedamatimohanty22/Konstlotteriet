@@ -36,7 +36,7 @@ Konstlotteriet är ett system som hanterar:
 ## Teknisk Stack
 
 - **Framework**: Quarkus 3.28.3
-- **Språk**: Java 21
+- **Språk**: Java 25
 - **Databas**: PostgreSQL 15
 - **ORM**: Hibernate with Panache
 - **Migration**: Flyway
@@ -47,7 +47,7 @@ Konstlotteriet är ett system som hanterar:
 ## Kom Igång
 
 ### Förutsättningar
-- Java 21 eller senare
+- Java 25 eller senare
 - Maven 3.9+
 - Docker (för dev services - PostgreSQL startas automatiskt)
 

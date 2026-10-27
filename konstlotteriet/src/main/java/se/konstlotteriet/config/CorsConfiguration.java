@@ -1,7 +1,7 @@
 package se.konstlotteriet.config;
 
 import io.quarkus.arc.Unremovable;
-import io.vertx.core.http.HttpServerRequest;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;

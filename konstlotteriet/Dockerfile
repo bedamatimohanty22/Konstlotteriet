@@ -1,7 +1,7 @@
 ####
 # This Dockerfile is used to build a container that runs the Quarkus application in JVM mode
 ####
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 ENV LANGUAGE='en_US:en'
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
